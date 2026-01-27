@@ -4,42 +4,62 @@ import time
 import os
 import glob
 
-
 # Helper Functions
 
-# The purpose of this function is to set up a socket connection.
-def create_socket(host, port):
-    # 1. Create a socket.
-    ## soc = ...
-    # 2. Try connecting the socket to the host and port.
-    try:
-        ## ...
-    except:
-        print("Connection Error to", port)
-        sys.exit()
-    # 3. Return the connected socket.
-    return soc
+# The purpose of this function is to set up a socket connection 
+def create_socket(host, port, message):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket: 
+        try: 
+            client_socket.connect((host, port))
+            print(f"Connected to server at {host}:{port}")
+            client_socket.sendall(message.encode('utf-8'))
+
+        except ConnectionRefusedError:
+            print("Connection refused. Make sure the server is running.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+        print("Connection closed.")
+
+
+
+#main loop, read each packet and send to next router 
+def router_1_main(forwarding_table, packets):
+    packet_array = read_csv(packets)
+    forwarding_array = read_csv(forwarding_table)
+
+    for row in packet_array:
+        
+        create_socket(row[1],) #how to get the port
+#read in packet csv file 
+
+
+#find the next hop
+def find_hop(packet, forwarding_table):
+
+    dest_ip = packet[1]
+    ip_to_bin(dest_ip)
+
+    for row in forwarding_table:
+        find_ip_range(dest_ip, row[1])
+        
+        
+
+    #check each row in forwarding table 
+        #use combination of ip and netmask
+
 
 
 # The purpose of this function is to read in a CSV file.
 def read_csv(path):
-    # 1. Open the file for reading.
-    table_file = open(path, "r")
-    # 2. Store each line.
-    table = table_file.readlines()
-    # 3. Create an empty list to store each processed row.
-    table_list = []
-    # 4. For each line in the file:
-    ## for ...:
-        # 5. split it by the delimiter,
-        ## ...
-        # 6. remove any leading or trailing spaces in each element, and
-        ## ...
-        # 7. append the resulting list to table_list.
-        ## table_list.append(...)
-    # 8. Close the file and return table_list.
-    table_file.close()
-    return table_list
+    data = []
+    with open(path, 'r') as file: 
+        for line in file:
+            stripped_line = line.strip() 
+            row_elements = stripped_line.split(',') 
+            data.append(row_elements)
+
+    return data
 
 
 # The purpose of this function is to find the default port
