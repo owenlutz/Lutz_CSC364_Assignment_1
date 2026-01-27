@@ -37,11 +37,18 @@ def router_1_main(forwarding_table, packets):
 #find the next hop
 def find_hop(packet, forwarding_table):
 
-    dest_ip = packet[1]
-    ip_to_bin(dest_ip)
-
+    dest_ip_int = int(packet[1])
+    
     for row in forwarding_table:
-        find_ip_range(dest_ip, row[1])
+        network_ip = int(row[0])
+        port = int(row[3])
+        netmask = int(row[1])
+        if(dest_ip_int & netmask) == (network_ip & netmask):
+            return port 
+        
+    return find_default_gateway
+
+        
         
         
 
@@ -65,13 +72,8 @@ def read_csv(path):
 # The purpose of this function is to find the default port
 # when no match is found in the forwarding table for a packet's destination IP.
 def find_default_gateway(table):
-    # 1. Traverse the table, row by row,
-    ## for ...:
-        # 2. and if the network destination of that row matches 0.0.0.0,
-        ## if ...:
-            # 3. then return the interface of that row.
-            ## return ...
-
+    for row in table: 
+        if int(row[0]) == 
 
 # The purpose of this function is to generate a forwarding table that includes the IP range for a given interface.
 # In other words, this table will help the router answer the question:
