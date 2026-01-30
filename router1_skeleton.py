@@ -5,7 +5,7 @@ import os
 import glob
 
 # Helper Functions
-
+# note - socket autoclosed by using with, as with manages context
 # The purpose of this function is to set up a socket connection 
 def create_socket(host, port, message):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket: 
@@ -29,33 +29,27 @@ def router_1_main(forwarding_table, packets):
     forwarding_array = read_csv(forwarding_table)
 
     for row in packet_array:
-        
-        create_socket(row[1],) #how to get the port
+        row[3] = int(row[3]) - 1
+        port = find_hop(row,forwarding_table)
+        create_socket(row[1],port,row) #how to get the port
 #read in packet csv file 
 
 
 #find the next hop
 def find_hop(packet, forwarding_table):
 
-    dest_ip_int = int(packet[1])
+    dest_ip_int = int(packet[1].strip(". "))
     
     for row in forwarding_table:
-        network_ip = int(row[0])
+        network_ip = int(row[0].strip(". "))
         port = int(row[3])
-        netmask = int(row[1])
+        netmask = int(row[1].strip(". "))
         if(dest_ip_int & netmask) == (network_ip & netmask):
             return port 
         
     return find_default_gateway
 
         
-        
-        
-
-    #check each row in forwarding table 
-        #use combination of ip and netmask
-
-
 
 # The purpose of this function is to read in a CSV file.
 def read_csv(path):
@@ -73,7 +67,10 @@ def read_csv(path):
 # when no match is found in the forwarding table for a packet's destination IP.
 def find_default_gateway(table):
     for row in table: 
-        if int(row[0]) == 
+        port = row[3]
+        if int(row[0]) == 0:
+            return port
+    return IndexError("No default gateway found in forwarding table.")
 
 # The purpose of this function is to generate a forwarding table that includes the IP range for a given interface.
 # In other words, this table will help the router answer the question:
@@ -111,7 +108,12 @@ def ip_to_bin(ip):
     # 3. Traverse the IP, octet by octet,
     ## for ...:
         # 4. and convert the octet to an int,
-        ## int_octet = ...
+        
+
+
+
+
+## int_octet = ...
         # 5. convert the decimal int to binary,
         ## bin_octet = ...
         # 6. convert the binary to string and remove the "0b" at the beginning of the string,
@@ -173,6 +175,8 @@ def write_to_file(path, packet_to_write, send_to_router=None):
 files = glob.glob('./output/*')
 for f in files:
     os.remove(f)
+
+
 
 # 1. Connect to the appropriate sending ports (based on the network topology diagram).
 ## ...
