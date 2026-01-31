@@ -20,13 +20,13 @@ def create_socket(host, port, message: str):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
         try:
             client_socket.connect((host, port))
-            print(f"[router_2] Connected to server at {host}:{port}")
+            print(f"[router_5] Connected to server at {host}:{port}")
             client_socket.sendall(message.encode("utf-8"))
         except ConnectionRefusedError:
-            print("[router_2] Connection refused. Make sure the next router is running.")
+            print("[router_5] Connection refused. Make sure the next router is running.")
         except Exception as e:
-            print(f"[router_2] An error occurred: {e}")
-        print("[router_2] Connection closed.")
+            print(f"[router_5] An error occurred: {e}")
+        print("[router_5] Connection closed.")
 
 
 def read_csv(path):
@@ -88,14 +88,14 @@ def log_line(path, line: str):
 
 
 def handle_client(client_socket, client_address, forwarding_array):
-    print(f"[router_2] Accepted connection from {client_address}")
+    print(f"[router_5] Accepted connection from {client_address}")
     try:
         data = client_socket.recv(4096)
         if not data:
             return
 
         message = data.decode("utf-8").strip()
-        print(f"[router_2] recv {message}")
+        print(f"[router_5] recv {message}")
 
         # Parse incoming packet (CSV line -> list)
         row = message.split(",")
@@ -113,10 +113,10 @@ def handle_client(client_socket, client_address, forwarding_array):
         # TTL expired
         if row[3] <= 0:
             if is_final_router:
-                print(f"[router_2] Packet {row} delivered at final router (TTL=0)")
+                print(f"[router_5] Packet {row} delivered at final router (TTL=0)")
                 log_line(OUTPUT_TTL0_LOG, ",".join(map(str, row)))
             else:
-                print(f"[router_2] Packet {row} dropped due to TTL=0")
+                print(f"[router_5] Packet {row} dropped due to TTL=0")
                 log_line(DISCARDED_LOG, ",".join(map(str, row)))
 
             client_socket.sendall(b"success from router 2")
@@ -124,7 +124,7 @@ def handle_client(client_socket, client_address, forwarding_array):
 
         # Final hop reached with TTL still > 0
         if is_final_router:
-            print(f"[router_2] Packet {row} delivered at final router")
+            print(f"[router_5] Packet {row} delivered at final router")
             log_line(OUT_LOG, ",".join(map(str, row)))
             client_socket.sendall(b"success from router 2")
             return
@@ -142,14 +142,14 @@ def handle_client(client_socket, client_address, forwarding_array):
         client_socket.sendall(b"success from router 2")
 
     except socket.error as e:
-        print(f"[router_2] Socket error: {e}")
+        print(f"[router_5] Socket error: {e}")
     except Exception as e:
-        print(f"[router_2] Error handling client: {e}")
+        print(f"[router_5] Error handling client: {e}")
     finally:
         client_socket.close()
 
 
-def router_2_main():
+def router_5_main():
     ensure_output_dir()
     forwarding_array = read_csv(FORWARDING_TABLE_PATH)
 
@@ -159,7 +159,7 @@ def router_2_main():
     server_address = (LISTEN_HOST, LISTEN_PORT)
     server_socket.bind(server_address)
     server_socket.listen(5)
-    print(f"[router_2] server is listening on {server_address}")
+    print(f"[router_5] server is listening on {server_address}")
 
     while True:
         client_socket, client_address = server_socket.accept()
@@ -172,4 +172,4 @@ def router_2_main():
 
 
 if __name__ == "__main__":
-    router_2_main()
+    router_5_main()
